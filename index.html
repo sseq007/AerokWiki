@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="에케위키 - AI 용어 및 항공 용어를 담은 백과사전">
+    <title>에케위키 (AeroK Wiki)</title>
+    <!-- Fonts -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Top Navbar -->
+        <header class="navbar">
+            <div class="nav-brand">
+                <a href="#/home">에케<span>위키</span></a>
+            </div>
+            <div class="nav-search">
+                <input type="text" id="searchInput" placeholder="지식의 바다에서 검색..." autocomplete="off">
+                <button id="searchBtn" aria-label="검색">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="nav-links">
+                <a href="#/docs">모든 문서</a>
+                <a href="#/new" style="color:var(--primary-color); font-weight:700;">+ 새 문서 작성</a>
+            </div>
+        </header>
+
+        <div class="layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-section">
+                    <h3>최근 변경 문서</h3>
+                    <ul id="popularDocs">
+                        <!-- JS 렌더링 -->
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h3>카테고리</h3>
+                    <ul id="categoryList">
+                        <li><a href="#/category/AI">인공지능 (AI)</a></li>
+                        <li><a href="#/category/Aviation">항공 (Aviation)</a></li>
+                        <li><a href="#/category/Basic">기초 개념</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content" id="main-content">
+                <!-- 위키 내용이 렌더링 됨 -->
+            </main>
+
+            <!-- Table of Contents Sidebar (Right) -->
+            <aside class="toc-sidebar" id="toc-sidebar">
+                <div class="toc-container">
+                    <h4>목차</h4>
+                    <ul id="tocList">
+                        <!-- 동적으로 목차 렌더링 -->
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/wiki.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
