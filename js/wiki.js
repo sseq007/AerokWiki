@@ -445,9 +445,9 @@ function sendSlackNotification(actionLog, title, author) {
     const docLink = `${siteUrl}#/w/${encodeURIComponent(title)}`;
 
     const payload = {
-        username: `${author} (AeroK Wiki)`,
+        username: `에케위키 알림`,
         icon_emoji: ":memo:",
-        text: `✈️ *문서 업데이트 알림*\n> *문서명*: <${docLink}|${title}>\n> *작업 내역*: ${actionLog}`
+        text: `*문서 업데이트 알림*\n>*작업자*: ${author}\n>*문서명*: <${docLink}|${title}>\n>*작업 내역*: ${actionLog}`
     };
 
     // Slack Webhook은 브라우저 직접 호출 시 CORS 에러를 발생시킬 수 있으므로,
