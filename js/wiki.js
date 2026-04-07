@@ -315,14 +315,7 @@ window.saveDocument = async function(oldTitle) {
     const existing = oldTitle ? window.wikiData[oldTitle] : null;
     const historyList = (existing && existing.history) ? existing.history : [];
     
-    let actionLog = '새 문서 작성';
-    if (existing) {
-        if (newTitle !== oldTitle) {
-            actionLog = `문서 제목 변경 (${oldTitle} → ${newTitle}) 및 수정`;
-        } else {
-            actionLog = '내용 업데이트';
-        }
-    }
+    let actionLog = existing ? '내용 업데이트' : '문서 생성';
 
     historyList.push({
         date: today,

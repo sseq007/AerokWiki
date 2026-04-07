@@ -9,6 +9,12 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <!-- 다크모드 깜빡임 방지용 초기 설정 -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </head>
 <body>
     <div id="app">
@@ -26,9 +32,12 @@
                     </svg>
                 </button>
             </div>
-            <div class="nav-links">
+            <div class="nav-links" style="display:flex; align-items:center;">
                 <a href="#/docs">모든 문서</a>
                 <a href="#/new" style="color:var(--primary-color); font-weight:700;">+ 새 문서 작성</a>
+                <button id="themeToggle" style="background:none; border:none; cursor:pointer; font-size:1.3rem; margin-left:1.5rem; transition:transform 0.2s;" aria-label="테마 전환" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <span id="themeIcon">🌙</span>
+                </button>
             </div>
         </header>
 
@@ -47,6 +56,16 @@
                         <li><a href="#/category/AI">인공지능 (AI)</a></li>
                         <li><a href="#/category/Aviation">항공 (Aviation)</a></li>
                         <li><a href="#/category/Basic">기초 개념</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h3>최신 개발 뉴스</h3>
+                    <ul class="news-list" style="list-style:none;">
+                        <li><a href="https://news.hada.io/" target="_blank">📰 GeekNews (긱뉴스)</a></li>
+                        <li><a href="https://velog.io/" target="_blank">🚀 Velog 트렌딩</a></li>
+                        <li><a href="https://news.ycombinator.com/" target="_blank">💻 Hacker News</a></li>
+                        <li><a href="https://okky.kr/" target="_blank">💬 OKKY 커뮤니티</a></li>
+                        <li><a href="https://github.com/trending" target="_blank">🔥 GitHub Trending</a></li>
                     </ul>
                 </div>
             </aside>
