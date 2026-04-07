@@ -228,9 +228,12 @@ function renderEditPage(title) {
             <label>내용 (Markdown)</label>
             <textarea id="editContent">${docData.content}</textarea>
         </div>
-        <div style="display:flex; gap:1rem;">
-            <button class="btn-primary" onclick="saveDocument('${title.replace(/'/g, "\\'")}')">저장하기</button>
-            <a href="#/w/${encodeURIComponent(title)}" class="btn-primary" style="background:var(--text-secondary);">취소</a>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2rem;">
+            <button type="button" class="btn-primary" style="width:110px; margin:0; padding:0.6rem 0; background:#e11d48;" onclick="deleteDocument('${title.replace(/'/g, "\\'")}')">삭제</button>
+            <div style="display:flex; gap:1rem;">
+                <button type="button" class="btn-primary" style="width:110px; margin:0; padding:0.6rem 0; background:var(--text-secondary);" onclick="window.location.hash='#/w/${encodeURIComponent(title)}'">취소</button>
+                <button type="button" class="btn-primary" style="width:110px; margin:0; padding:0.6rem 0;" onclick="saveDocument('${title.replace(/'/g, "\\'")}')">저장</button>
+            </div>
         </div>
     `;
 
@@ -268,9 +271,9 @@ function renderNewPage() {
             <label>내용 (Markdown)</label>
             <textarea id="editContent" placeholder="# 제목\n\n내용을 입력하세요. 마크다운 문법을 지원합니다."></textarea>
         </div>
-        <div style="display:flex; gap:1rem;">
-            <button class="btn-primary" onclick="createNewDocument()">생성하기</button>
-            <a href="#/home" class="btn-primary" style="background:var(--text-secondary);">취소</a>
+        <div style="display:flex; justify-content:flex-end; gap:1rem; align-items:center; margin-top:2rem;">
+            <button type="button" class="btn-primary" style="width:110px; margin:0; padding:0.6rem 0; background:var(--text-secondary);" onclick="window.location.hash='#/home'">취소</button>
+            <button type="button" class="btn-primary" style="width:110px; margin:0; padding:0.6rem 0;" onclick="createNewDocument()">등록</button>
         </div>
     `;
 
@@ -360,6 +363,30 @@ window.saveDocument = async function(oldTitle) {
     }
 };
 
+window.deleteDocument = async function(title) {
+    if (!confirm(`정말로 '${title}' 문서를 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.`)) {
+        return;
+    }
+
+    const authorSelect = document.getElementById('editAuthor');
+    const author = authorSelect ? authorSelect.value : '누군가';
+
+    if (window.db) {
+        try {
+            await window.db.collection("wikiDocs").doc(title).delete();
+            sendSlackNotification("문서 완전 삭제 처리됨 🗑️", title, author);
+            alert("문서가 삭제되었습니다.");
+            window.location.hash = '#/home';
+        } catch (error) {
+            console.error("문서 삭제 실패:", error);
+            alert("문서 삭제에 실패했습니다. 네트워크를 확인하세요.");
+        }
+    } else {
+        delete window.wikiData[title];
+        window.location.hash = '#/home';
+    }
+};
+
 window.createNewDocument = function() {
     const title = document.getElementById('editTitle').value.trim();
     if (!title) {
@@ -425,7 +452,9 @@ function sendSlackNotification(actionLog, title, author) {
     const docLink = `${siteUrl}#/w/${encodeURIComponent(title)}`;
 
     const payload = {
-        text: `*[AeroK Wiki 업데이트]* ✈️\n담당자 *${author}*님이 문서를 업데이트했습니다.\n> *문서명*: <${docLink}|${title}>\n> *작업 내역*: ${actionLog}`
+        username: `${author} (AeroK Wiki)`,
+        icon_emoji: ":memo:",
+        text: `✈️ *문서 업데이트 알림*\n> *문서명*: <${docLink}|${title}>\n> *작업 내역*: ${actionLog}`
     };
 
     // Slack Webhook은 브라우저 직접 호출 시 CORS 에러를 발생시킬 수 있으므로,

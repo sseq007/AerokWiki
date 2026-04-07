@@ -95,7 +95,15 @@ function renderSidebarData() {
     if (!popularList) return;
 
     const allTitles = Object.keys(window.wikiData || {});
-    const popular = allTitles.slice(0, 5);
+    
+    // 최종 수정일(lastModified) 기준 내림차순(최신순) 정렬
+    const sortedTitles = allTitles.sort((a, b) => {
+        const dateA = window.wikiData[a].lastModified || "0000-00-00 00:00";
+        const dateB = window.wikiData[b].lastModified || "0000-00-00 00:00";
+        return dateB.localeCompare(dateA); 
+    });
+
+    const popular = sortedTitles.slice(0, 5);
     
     if (popular.length === 0) {
         popularList.innerHTML = `<li><span style="color:var(--text-secondary); font-size:0.9em;">문서가 없습니다.</span></li>`;
