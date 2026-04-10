@@ -202,9 +202,8 @@ function renderEditPage(title) {
 
     document.title = `${title} 편집 - 에케위키`;
 
-    const savedAuthor = localStorage.getItem('aerok_lastAuthor') || '신준호';
-    const authors = ['고은아', '고민정', '이기정', '신준호'];
-    const authorOptions = authors.map(a => `<option value="${a}" ${a === savedAuthor ? 'selected' : ''}>${a}</option>`).join('');
+    const authorName = window.currentUser ? window.currentUser.name : (localStorage.getItem('aerok_userName') || '누군가');
+    const authorIP = window.currentUser ? window.currentUser.ip : (localStorage.getItem('aerok_userIP') || '알 수 없음');
 
     const html = `
         <h2>'${title}' 편집</h2>
@@ -214,9 +213,12 @@ function renderEditPage(title) {
         </div>
         <div class="edit-form-group">
             <label>작성자</label>
-            <select id="editAuthor">
-                ${authorOptions}
-            </select>
+            <div style="padding: 0.8rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; color: var(--text-primary);">${authorName}</span>
+                <span style="font-size: 0.85em;">IP: ${authorIP}</span>
+            </div>
+            <input type="hidden" id="editAuthor" value="${authorName}">
+            <input type="hidden" id="editAuthorIP" value="${authorIP}">
         </div>
         <div class="edit-form-group">
             <label>카테고리</label>
@@ -245,9 +247,8 @@ function renderNewPage() {
     const mainContent = document.getElementById('main-content');
     document.title = `새 문서 작성 - 에케위키`;
 
-    const savedAuthor = localStorage.getItem('aerok_lastAuthor') || '신준호';
-    const authors = ['고은아', '고민정', '이기정', '신준호'];
-    const authorOptions = authors.map(a => `<option value="${a}" ${a === savedAuthor ? 'selected' : ''}>${a}</option>`).join('');
+    const authorName = window.currentUser ? window.currentUser.name : (localStorage.getItem('aerok_userName') || '누군가');
+    const authorIP = window.currentUser ? window.currentUser.ip : (localStorage.getItem('aerok_userIP') || '알 수 없음');
 
     const html = `
         <h2>새 문서 작성</h2>
@@ -257,9 +258,12 @@ function renderNewPage() {
         </div>
         <div class="edit-form-group">
             <label>작성자</label>
-            <select id="editAuthor">
-                ${authorOptions}
-            </select>
+            <div style="padding: 0.8rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; color: var(--text-primary);">${authorName}</span>
+                <span style="font-size: 0.85em;">IP: ${authorIP}</span>
+            </div>
+            <input type="hidden" id="editAuthor" value="${authorName}">
+            <input type="hidden" id="editAuthorIP" value="${authorIP}">
         </div>
         <div class="edit-form-group">
             <label>카테고리</label>
@@ -294,14 +298,13 @@ window.saveDocument = async function(oldTitle) {
     const category = document.getElementById('editCategory').value;
     const content = document.getElementById('editContent').value;
     const author = document.getElementById('editAuthor').value;
+    const authorIP = document.getElementById('editAuthorIP') ? document.getElementById('editAuthorIP').value : '알 수 없음';
     
     // 변경된 제목이 이미 존재하는 문서인지 확인 (자기 자신에 덮어쓰는건 제외)
     if (newTitle !== oldTitle && window.wikiData && window.wikiData[newTitle] && oldTitle !== '') {
         alert("해당 제목을 가진 문서가 이미 존재합니다. 다른 제목을 사용해주세요.");
         return;
     }
-
-    localStorage.setItem('aerok_lastAuthor', author);
 
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -320,6 +323,7 @@ window.saveDocument = async function(oldTitle) {
     historyList.push({
         date: today,
         author: author,
+        ip: authorIP,
         action: actionLog
     });
 
@@ -361,8 +365,8 @@ window.deleteDocument = async function(title) {
         return;
     }
 
-    const authorSelect = document.getElementById('editAuthor');
-    const author = authorSelect ? authorSelect.value : '누군가';
+    const authorInput = document.getElementById('editAuthor');
+    const author = authorInput ? authorInput.value : (window.currentUser ? window.currentUser.name : '누군가');
 
     if (window.db) {
         try {
@@ -415,10 +419,11 @@ function renderHistoryPage(title) {
     } else {
         historyHtml += `<ul style="list-style:none; padding:0;">`;
         [...historyList].reverse().forEach((log) => {
+            const ipDisplay = log.ip ? `<span style="font-size:0.85em; color:var(--text-secondary); margin-left:0.5rem;">(IP: ${log.ip})</span>` : '';
             historyHtml += `
                 <li style="border-left: 4px solid var(--primary-color); padding: 1.2rem; margin-bottom: 1rem; background: var(--card-bg); border-radius: 0 8px 8px 0;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:1.1rem; font-weight:700;">${log.author} <span style="font-weight:400; font-size:0.9rem; color:var(--text-secondary); margin-left:0.5rem;">님이 편집함</span></span>
+                        <span style="font-size:1.1rem; font-weight:700;">${log.author} ${ipDisplay} <span style="font-weight:400; font-size:0.9rem; color:var(--text-secondary); margin-left:0.5rem;">님이 편집함</span></span>
                         <span style="color:var(--text-secondary); font-size:0.9rem;">${log.date}</span>
                     </div>
                     <div style="color:var(--text-primary); margin-top:0.5rem; font-size:0.95rem;">수행한 작업: ${log.action}</div>

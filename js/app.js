@@ -24,6 +24,79 @@ window.exportDataJs = function() {
 };
 window.saveToLocalStorage = function() {}; // 더 이상 사용 안 함
 
+window.currentUser = {
+    ip: localStorage.getItem('aerok_userIP') || '알 수 없음',
+    name: localStorage.getItem('aerok_userName') || '누군가'
+};
+
+async function checkUserIdentity() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        const ip = data.ip;
+        
+        let savedName = localStorage.getItem('aerok_userName');
+        let savedIP = localStorage.getItem('aerok_userIP');
+        
+        if (!savedName || savedIP !== ip) {
+            showUserModal(ip);
+        } else {
+            window.currentUser = { ip: ip, name: savedName };
+        }
+    } catch (e) {
+        console.error("IP 가져오기 에러:", e);
+        if (!localStorage.getItem('aerok_userName')) {
+            showUserModal('알 수 없음');
+        }
+    }
+}
+
+function showUserModal(ip) {
+    if (document.getElementById('userModalOverlay')) return;
+    const modalHtml = `
+        <div id="userModalOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(3px);">
+            <div style="background:var(--card-bg, #fff); padding:2.5rem; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.2); width:90%; max-width:400px; color:var(--text-primary, #333);">
+                <h3 style="margin-top:0; font-size:1.5rem; margin-bottom:1rem;">환영합니다! 👋</h3>
+                <p style="margin-bottom:0.5rem; color:var(--text-secondary);">현재 접속하신 IP: <strong>${ip}</strong></p>
+                <p style="margin-bottom:1.5rem; font-size:0.95rem; line-height:1.5;">문서 편집 시 히스토리에 기록될 닉네임을 설정해주세요.</p>
+                <input type="text" id="userNameInput" placeholder="이름 또는 닉네임" autocomplete="off" style="width:100%; padding:1rem; margin-bottom:1.5rem; border:1px solid var(--border-color); border-radius:8px; box-sizing:border-box; font-size:1rem; outline:none; background:var(--bg-color); color:var(--text-primary);">
+                <button type="button" class="btn-primary" style="width:100%; padding:1rem; border:none; border-radius:8px; cursor:pointer; font-size:1.05rem; font-weight:bold;" onclick="saveUserIdentity('${ip}')">시작하기</button>
+            </div>
+        </div>
+    `;
+    const div = document.createElement('div');
+    div.innerHTML = modalHtml;
+    document.body.appendChild(div);
+    
+    setTimeout(() => {
+        const input = document.getElementById('userNameInput');
+        if (input) {
+            input.focus();
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') saveUserIdentity(ip);
+            });
+        }
+    }, 100);
+}
+
+window.saveUserIdentity = function(ip) {
+    const nameInput = document.getElementById('userNameInput');
+    const name = nameInput.value.trim();
+    if (!name) {
+        alert("이름을 입력해주세요.");
+        return;
+    }
+    localStorage.setItem('aerok_userIP', ip);
+    localStorage.setItem('aerok_userName', name);
+    window.currentUser = { ip: ip, name: name };
+    
+    const overlay = document.getElementById('userModalOverlay');
+    if (overlay) overlay.remove();
+};
+
+checkUserIdentity();
+
+
 // 실시간 데이터베이스 동기화
 db.collection("wikiDocs").onSnapshot((snapshot) => {
     // 1. Firebase 데이터베이스가 처음 만들어져서 비어있을 경우 기존 data.js 데이터를 업로드 (Seed)
