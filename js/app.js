@@ -58,8 +58,8 @@ function showUserModal(ip) {
             <div style="background:var(--card-bg, #fff); padding:2.5rem; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.2); width:90%; max-width:400px; color:var(--text-primary, #333);">
                 <h3 style="margin-top:0; font-size:1.5rem; margin-bottom:1rem;">환영합니다! 👋</h3>
                 <p style="margin-bottom:0.5rem; color:var(--text-secondary);">현재 접속하신 IP: <strong>${ip}</strong></p>
-                <p style="margin-bottom:1.5rem; font-size:0.95rem; line-height:1.5;">문서 편집 시 히스토리에 기록될 닉네임을 설정해주세요.</p>
-                <input type="text" id="userNameInput" placeholder="이름 또는 닉네임" autocomplete="off" style="width:100%; padding:1rem; margin-bottom:1.5rem; border:1px solid var(--border-color); border-radius:8px; box-sizing:border-box; font-size:1rem; outline:none; background:var(--bg-color); color:var(--text-primary);">
+                <p style="margin-bottom:1.5rem; font-size:0.95rem; line-height:1.5;">문서 편집 시 히스토리에 기록될 이름을 설정해주세요.</p>
+                <input type="text" id="userNameInput" placeholder="이름" autocomplete="off" style="width:100%; padding:1rem; margin-bottom:1.5rem; border:1px solid var(--border-color); border-radius:8px; box-sizing:border-box; font-size:1rem; outline:none; background:var(--bg-color); color:var(--text-primary);">
                 <button type="button" class="btn-primary" style="width:100%; padding:1rem; border:none; border-radius:8px; cursor:pointer; font-size:1.05rem; font-weight:bold;" onclick="saveUserIdentity('${ip}')">시작하기</button>
             </div>
         </div>
