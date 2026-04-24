@@ -415,7 +415,7 @@ function renderHistoryPage(title) {
     const historyList = docData.history || [];
     
     if (historyList.length === 0) {
-        historyHtml += `<p style="color:var(--text-secondary);">히스토리 시스템 도입 전이므로 이전 기록이 없습니다.</p>`;
+        historyHtml += `<p style="color:var(--text-secondary);">이전 기록이 없습니다.</p>`;
     } else {
         historyHtml += `<ul style="list-style:none; padding:0;">`;
         [...historyList].reverse().forEach((log) => {
