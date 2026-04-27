@@ -329,7 +329,7 @@ window.saveDocument = async function(oldTitle) {
     let actionLog = '문서 생성';
     if (existing) {
         if (oldTitle && newTitle !== oldTitle) {
-            actionLog = `제목 업데이트 (${oldTitle} ➡️ ${newTitle})`;
+            actionLog = `제목 업데이트`;
         } else {
             actionLog = '내용 업데이트';
         }
