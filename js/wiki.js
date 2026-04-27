@@ -205,17 +205,25 @@ function renderEditPage(title) {
     const authorName = window.currentUser ? window.currentUser.name : (localStorage.getItem('aerok_userName') || '누군가');
     const authorIP = window.currentUser ? window.currentUser.ip : (localStorage.getItem('aerok_userIP') || '알 수 없음');
 
+    const isNewDoc = !window.wikiData || !window.wikiData[title];
+    const creatorIP = (docData.history && docData.history.length > 0) ? docData.history[0].ip : null;
+    const isCreator = isNewDoc || creatorIP === authorIP;
+    const titleInputAttr = isCreator ? '' : 'readonly title="최초 작성자만 제목을 수정할 수 있습니다." style="background-color: var(--bg-color); cursor: not-allowed; color: var(--text-secondary);"';
+
+    const creatorName = docData.creator || ((docData.history && docData.history.length > 0) ? docData.history[0].author : authorName);
+    const displayIP = creatorIP || authorIP;
+
     const html = `
         <h2>'${title}' 편집</h2>
         <div class="edit-form-group">
             <label>문서 제목</label>
-            <input type="text" id="editTitle" value="${title}" autocomplete="off">
+            <input type="text" id="editTitle" value="${title}" autocomplete="off" ${titleInputAttr}>
         </div>
         <div class="edit-form-group">
             <label>작성자</label>
-            <div style="padding: 0.8rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: bold; color: var(--text-primary);">${authorName}</span>
-                <span style="font-size: 0.85em;">IP: ${authorIP}</span>
+            <div style="padding: 0.8rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; cursor: not-allowed;" title="작성자는 최초 작성자로 고정됩니다.">
+                <span style="font-weight: bold; color: var(--text-primary);">${creatorName}</span>
+                <span style="font-size: 0.85em;">IP: ${displayIP}</span>
             </div>
             <input type="hidden" id="editAuthor" value="${authorName}">
             <input type="hidden" id="editAuthorIP" value="${authorIP}">
@@ -258,7 +266,7 @@ function renderNewPage() {
         </div>
         <div class="edit-form-group">
             <label>작성자</label>
-            <div style="padding: 0.8rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+            <div style="padding: 0.8rem; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; cursor: not-allowed;" title="작성자는 최초 작성자로 고정됩니다.">
                 <span style="font-weight: bold; color: var(--text-primary);">${authorName}</span>
                 <span style="font-size: 0.85em;">IP: ${authorIP}</span>
             </div>
@@ -318,13 +326,21 @@ window.saveDocument = async function(oldTitle) {
     const existing = oldTitle ? window.wikiData[oldTitle] : null;
     const historyList = (existing && existing.history) ? existing.history : [];
     
-    let actionLog = existing ? '내용 업데이트' : '문서 생성';
+    let actionLog = '문서 생성';
+    if (existing) {
+        if (oldTitle && newTitle !== oldTitle) {
+            actionLog = `제목 업데이트 (${oldTitle} ➡️ ${newTitle})`;
+        } else {
+            actionLog = '내용 업데이트';
+        }
+    }
 
     historyList.push({
         date: today,
         author: author,
         ip: authorIP,
-        action: actionLog
+        action: actionLog,
+        content: content
     });
 
     const newDocData = {
@@ -334,6 +350,14 @@ window.saveDocument = async function(oldTitle) {
         lastAuthor: author,
         history: historyList
     };
+
+    if (existing && existing.creator) {
+        newDocData.creator = existing.creator;
+    } else if (existing && existing.history && existing.history.length > 0) {
+        newDocData.creator = existing.history[0].author;
+    } else {
+        newDocData.creator = author;
+    }
 
     // Firebase Cloud Firestore에 비동기로 문서 생성/업데이트
     if (window.db) {
@@ -414,19 +438,58 @@ function renderHistoryPage(title) {
     
     const historyList = docData.history || [];
     
+    function escapeHtml(unsafe) {
+        return (unsafe || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
     if (historyList.length === 0) {
         historyHtml += `<p style="color:var(--text-secondary);">이전 기록이 없습니다.</p>`;
     } else {
         historyHtml += `<ul style="list-style:none; padding:0;">`;
-        [...historyList].reverse().forEach((log) => {
+        
+        const reversedHistory = [...historyList].reverse();
+        
+        reversedHistory.forEach((log, index) => {
             const ipDisplay = log.ip ? `<span style="font-size:0.85em; color:var(--text-secondary); margin-left:0.5rem;">(IP: ${log.ip})</span>` : '';
+            
+            // 이전 리비전 찾기 (reversed 배열이므로 index + 1 이 이전 버전임)
+            const previousLog = reversedHistory[index + 1];
+            const oldContent = previousLog && previousLog.content ? previousLog.content : '';
+            const currentContent = log.content || '';
+            
+            let diffHtml = '';
+            let toggleButton = '';
+            
+            if (log.content && typeof Diff !== 'undefined') {
+                // diff 구하기
+                const diff = Diff.diffLines(oldContent, currentContent);
+                let diffContent = '';
+                
+                diff.forEach(part => {
+                    const cssClass = part.added ? 'diff-added' : part.removed ? 'diff-removed' : '';
+                    if (cssClass) {
+                        diffContent += `<span class="${cssClass}">${escapeHtml(part.value)}</span>`;
+                    } else {
+                        diffContent += `<span>${escapeHtml(part.value)}</span>`;
+                    }
+                });
+                
+                const diffId = `diff-${index}`;
+                toggleButton = `<button onclick="document.getElementById('${diffId}').style.display = document.getElementById('${diffId}').style.display === 'none' ? 'block' : 'none'" style="margin-top:0.8rem; background:var(--bg-color); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem 0.8rem; cursor:pointer; font-size:0.85rem; color:var(--text-secondary); transition: all 0.2s;">변경 사항 보기 ▾</button>`;
+                diffHtml = `<div id="${diffId}" class="diff-view" style="display:none;">${diffContent || '변경 사항 없음'}</div>`;
+            } else if (log.action === '내용 업데이트') {
+                toggleButton = `<p style="font-size:0.85em; color:var(--text-secondary); margin-top:0.5rem;">(이전 버전은 상세 변경 내역이 기록되지 않았습니다.)</p>`;
+            }
+
             historyHtml += `
-                <li style="border-left: 4px solid var(--primary-color); padding: 1.2rem; margin-bottom: 1rem; background: var(--card-bg); border-radius: 0 8px 8px 0;">
+                <li style="border-left: 4px solid var(--primary-color); padding: 1.2rem; margin-bottom: 1rem; background: var(--card-bg); border-radius: 0 8px 8px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:1.1rem; font-weight:700;">${log.author} ${ipDisplay} <span style="font-weight:400; font-size:0.9rem; color:var(--text-secondary); margin-left:0.5rem;">님이 편집함</span></span>
                         <span style="color:var(--text-secondary); font-size:0.9rem;">${log.date}</span>
                     </div>
                     <div style="color:var(--text-primary); margin-top:0.5rem; font-size:0.95rem;">수행한 작업: ${log.action}</div>
+                    ${toggleButton}
+                    ${diffHtml}
                 </li>
             `;
         });

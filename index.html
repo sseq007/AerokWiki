@@ -9,6 +9,14 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .diff-added { background-color: #e6ffec; color: #1a7f37; text-decoration: none; display: inline-block; width: 100%; }
+        .diff-removed { background-color: #ffebe9; color: #cf222e; text-decoration: line-through; display: inline-block; width: 100%; }
+        .diff-view { display: none; margin-top: 1rem; padding: 1rem; background: #f6f8fa; border-radius: 6px; font-family: monospace; white-space: pre-wrap; font-size: 0.9em; overflow-x: auto; border: 1px solid #d0d7de; }
+        [data-theme='dark'] .diff-added { background-color: rgba(46,160,67,0.15); color: #3fb950; }
+        [data-theme='dark'] .diff-removed { background-color: rgba(248,81,73,0.1); color: #f85149; }
+        [data-theme='dark'] .diff-view { background: #0d1117; border-color: #30363d; color: #c9d1d9; }
+    </style>
     <!-- 다크모드 깜빡임 방지용 초기 설정 -->
     <script>
         if (localStorage.getItem('theme') === 'dark') {
@@ -88,6 +96,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="js/data.js"></script>
