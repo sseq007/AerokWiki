@@ -328,8 +328,13 @@ window.saveDocument = async function(oldTitle) {
     
     let actionLog = '문서 생성';
     if (existing) {
-        if (oldTitle && newTitle !== oldTitle) {
-            actionLog = `제목 업데이트`;
+        const isTitleChanged = (oldTitle && newTitle !== oldTitle);
+        const isContentChanged = (existing.content !== content);
+
+        if (isTitleChanged && isContentChanged) {
+            actionLog = '제목 및 내용 업데이트';
+        } else if (isTitleChanged) {
+            actionLog = '제목 업데이트';
         } else {
             actionLog = '내용 업데이트';
         }
