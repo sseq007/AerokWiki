@@ -345,6 +345,7 @@ window.saveDocument = async function(oldTitle) {
         author: author,
         ip: authorIP,
         action: actionLog,
+        title: newTitle,
         content: content
     });
 
@@ -462,27 +463,45 @@ function renderHistoryPage(title) {
             const oldContent = previousLog && previousLog.content ? previousLog.content : '';
             const currentContent = log.content || '';
             
+            const oldTitleStr = previousLog && previousLog.title ? previousLog.title : '';
+            const currentTitleStr = log.title || '';
+            
             let diffHtml = '';
             let toggleButton = '';
             
-            if (log.content && typeof Diff !== 'undefined') {
-                // diff 구하기
-                const diff = Diff.diffLines(oldContent, currentContent);
+            if ((log.content || log.title) && typeof Diff !== 'undefined') {
                 let diffContent = '';
                 
-                diff.forEach(part => {
-                    const cssClass = part.added ? 'diff-added' : part.removed ? 'diff-removed' : '';
-                    if (cssClass) {
-                        diffContent += `<span class="${cssClass}">${escapeHtml(part.value)}</span>`;
-                    } else {
-                        diffContent += `<span>${escapeHtml(part.value)}</span>`;
-                    }
-                });
+                // 1. 제목 Diff 처리
+                if (currentTitleStr && oldTitleStr && currentTitleStr !== oldTitleStr) {
+                    diffContent += `<div style="margin-bottom: 0.8rem; padding-bottom: 0.8rem; border-bottom: 1px dashed var(--border-color);">`;
+                    diffContent += `<strong style="color:var(--text-primary); font-size:0.95em;">[제목 변경]</strong><br/>`;
+                    diffContent += `<span class="diff-removed">제목: ${escapeHtml(oldTitleStr)}</span><br/>`;
+                    diffContent += `<span class="diff-added">제목: ${escapeHtml(currentTitleStr)}</span>`;
+                    diffContent += `</div>`;
+                }
+
+                // 2. 본문 내용 Diff 처리
+                if (log.content) {
+                    const diff = Diff.diffLines(oldContent, currentContent);
+                    diff.forEach(part => {
+                        const cssClass = part.added ? 'diff-added' : part.removed ? 'diff-removed' : '';
+                        if (cssClass) {
+                            diffContent += `<span class="${cssClass}">${escapeHtml(part.value)}</span>`;
+                        } else {
+                            diffContent += `<span>${escapeHtml(part.value)}</span>`;
+                        }
+                    });
+                }
                 
-                const diffId = `diff-${index}`;
-                toggleButton = `<button onclick="document.getElementById('${diffId}').style.display = document.getElementById('${diffId}').style.display === 'none' ? 'block' : 'none'" style="margin-top:0.8rem; background:var(--bg-color); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem 0.8rem; cursor:pointer; font-size:0.85rem; color:var(--text-secondary); transition: all 0.2s;">변경 사항 보기 ▾</button>`;
-                diffHtml = `<div id="${diffId}" class="diff-view" style="display:none;">${diffContent || '변경 사항 없음'}</div>`;
-            } else if (log.action === '내용 업데이트') {
+                if (diffContent) {
+                    const diffId = `diff-${index}`;
+                    toggleButton = `<button onclick="document.getElementById('${diffId}').style.display = document.getElementById('${diffId}').style.display === 'none' ? 'block' : 'none'" style="margin-top:0.8rem; background:var(--bg-color); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem 0.8rem; cursor:pointer; font-size:0.85rem; color:var(--text-secondary); transition: all 0.2s;">변경 사항 보기 ▾</button>`;
+                    diffHtml = `<div id="${diffId}" class="diff-view" style="display:none;">${diffContent}</div>`;
+                } else {
+                    toggleButton = `<p style="font-size:0.85em; color:var(--text-secondary); margin-top:0.5rem;">(상세 변경 내역이 없습니다.)</p>`;
+                }
+            } else if (log.action === '내용 업데이트' || log.action.includes('제목')) {
                 toggleButton = `<p style="font-size:0.85em; color:var(--text-secondary); margin-top:0.5rem;">(이전 버전은 상세 변경 내역이 기록되지 않았습니다.)</p>`;
             }
 
